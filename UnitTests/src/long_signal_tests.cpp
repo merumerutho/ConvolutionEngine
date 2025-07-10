@@ -1,5 +1,5 @@
-#include "test_common.h"
-#include "generated_test_data.h"
+#include "test_common.hpp"
+#include "generated_test_data.hpp"
 
 TEST_P(ConvolutionEngineTest, DenseIR) {
     DenseIRHandle handle;

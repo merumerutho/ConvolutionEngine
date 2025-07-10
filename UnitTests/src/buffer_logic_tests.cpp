@@ -1,4 +1,4 @@
-#include "test_common.h"
+#include "test_common.hpp"
 
 // Test ID: BUFF-02 - Write Head Advancement
 TEST_P(ConvolutionEngineTest, WriteHeadAdvancement) {

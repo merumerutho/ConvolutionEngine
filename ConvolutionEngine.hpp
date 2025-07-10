@@ -2,7 +2,7 @@
 #ifndef CONVOLUTION_ENGINE_H
 #define CONVOLUTION_ENGINE_H
 
-#include "IRHandle.h"
+#include "IRHandle.hpp"
 #include <cstddef>   
 #include <algorithm> 
 #include <cmath>     

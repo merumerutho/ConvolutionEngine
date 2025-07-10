@@ -1,5 +1,4 @@
-
-#include "test_common.h"
+#include "test_common.hpp"
 
 // Test ID: EDGE-01 - Block Size Variation
 TEST_P(ConvolutionEngineTest, BlockSizeVariation) {

@@ -1,5 +1,4 @@
-
-#include "test_common.h"
+#include "test_common.hpp"
 
 // Test ID: INIT-01 - Default State
 TEST_P(ConvolutionEngineTest, DefaultState) {

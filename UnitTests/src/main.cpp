@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "test_common.h"
+#include "test_common.hpp"
 
 // Helper to generate a string name for each test case
 inline std::string getTestName(const testing::TestParamInfo<TestConfig>& info) {

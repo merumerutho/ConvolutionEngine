@@ -1,5 +1,4 @@
-
-#include "test_common.h"
+#include "test_common.hpp"
 
 // Test ID: FUNC-01 - Impulse Response
 TEST_P(ConvolutionEngineTest, ImpulseResponse) {
