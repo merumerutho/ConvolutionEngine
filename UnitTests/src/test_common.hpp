@@ -2,8 +2,8 @@
 #pragma once
 
 #include "gtest/gtest.h"
-#include "../../ConvolutionEngine.h"
-#include "../../IRHandle.h"
+#include "../../ConvolutionEngine.hpp"
+#include "../../IRHandle.hpp"
 #include <vector>
 #include <numeric>
 
@@ -48,8 +48,7 @@ protected:
 
     template<typename IRHandleType>
     void InitializeEngine(IRHandleType& handle) {
-        handle.num_channels = config.num_channels;
-        engine->Init(handle, ir_buffer.data(), ir_buffer.size());
+        engine->Init(handle, ir_buffer.data(), ir_buffer.size(), config.num_channels);
     }
 
     ConvolutionEngine* engine;

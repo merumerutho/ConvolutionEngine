@@ -26,11 +26,11 @@ public:
     ~ConvolutionEngine() {}
 
     template <typename IRHandleType>
-    void Init(const IRHandleType& handle, float* circ_buffer, size_t buffer_size)
+    void Init(const IRHandleType& handle, float* circ_buffer, size_t buffer_size, size_t num_channels)
     {
         circ_buffer_  = circ_buffer;
         buffer_size_  = buffer_size;
-        num_channels_ = handle.num_channels;
+        num_channels_ = num_channels;
         write_head_   = 0;
 
         assert(circ_buffer_); 	// != NULL
@@ -231,10 +231,10 @@ protected:
             
             // HEAD ADVANCE
             for_each_channel<CLayout>([&](size_t ch) {
-                out[i*num_ch + ch] = circ_buffer_[write_head_];
-                circ_buffer_[write_head_] = 0.0f;
-				write_head_ = wrap_address<WMode>(write_head_ + 1);
+                out[i*num_ch + ch] = circ_buffer_[wrap_address<WMode>(write_head_+ch)];
+                circ_buffer_[wrap_address<WMode>(write_head_+ch)] = 0.0f;
             });
+			write_head_ = wrap_address<WMode>(write_head_ + num_ch);
         }
     }
 
