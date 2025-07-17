@@ -190,50 +190,52 @@ protected:
     {
         const size_t num_ch = num_channels_;
 
-        for (size_t i = 0; i < size; i++)
+        for (size_t smp = 0; smp < size; smp++)
         {
             // DENSE KERNEL
             if constexpr (IType == IRType::DENSE)
             {
-                for (size_t j = 0; j < num_dense_taps_; j++)
+                for (size_t t = 0; t < num_dense_taps_; t++)
                     for_each_channel<CLayout>([&](size_t ch) 
                     {
-                        const size_t tap_pos = wrap_address<WMode>(write_head_ + ch + j * num_ch);
-                        circ_buffer_[tap_pos] += in[i*num_ch + ch] * dense_taps_[j];
+                        const size_t tap_pos = wrap_address<WMode>(write_head_ + ch + t * num_ch);
+                        circ_buffer_[tap_pos] += in[smp*num_ch + ch] * dense_taps_[t];
                     });
             }
             // SPARSE KERNEL
             else if constexpr (IType == IRType::SPARSE)
             {
-                for (size_t j = 0; j < num_sparse_taps_; j++)
+                for (size_t t = 0; t < num_sparse_taps_; t++)
                     for_each_channel<CLayout>([&](size_t ch) 
                     {
-                        const size_t tap_pos = wrap_address<WMode>(write_head_ + ch + sparse_positions_[j] * num_ch);
-                        circ_buffer_[tap_pos] += in[i*num_ch + ch] * sparse_values_[j];
+                        const size_t tap_pos = wrap_address<WMode>(write_head_ + ch + sparse_positions_[t] * num_ch);
+                        circ_buffer_[tap_pos] += in[smp*num_ch + ch] * sparse_values_[t];
                     });
             }
             // VELVET KERNEL
             else if constexpr (IType == IRType::VELVET)
             {
-                for (size_t j = 0; j < num_velvet_pos_taps_; j++)
+                for (size_t t = 0; t < num_velvet_pos_taps_; t++)
                     for_each_channel<CLayout>([&](size_t ch) 
                     {
-                        const size_t tap_pos = wrap_address<WMode>(write_head_ + ch + velvet_pos_taps_[j] * num_ch);
-                        circ_buffer_[tap_pos] += in[i*num_ch + ch];
+                        const size_t tap_pos = wrap_address<WMode>(write_head_ + ch + velvet_pos_taps_[t] * num_ch);
+                        circ_buffer_[tap_pos] += in[smp*num_ch + ch];
                     });
-                for (size_t j = 0; j < num_velvet_neg_taps_; j++)
+                for (size_t t = 0; t < num_velvet_neg_taps_; t++)
                     for_each_channel<CLayout>([&](size_t ch) 
                     {
-                        const size_t tap_pos = wrap_address<WMode>(write_head_ + ch + velvet_neg_taps_[j] * num_ch);
-                        circ_buffer_[tap_pos] -= in[i*num_ch + ch];
+                        const size_t tap_pos = wrap_address<WMode>(write_head_ + ch + velvet_neg_taps_[t] * num_ch);
+                        circ_buffer_[tap_pos] -= in[smp*num_ch + ch];
                     });
             }
             
-            // HEAD ADVANCE
+            // Extract output and clear buffer
             for_each_channel<CLayout>([&](size_t ch) {
-                out[i*num_ch + ch] = circ_buffer_[wrap_address<WMode>(write_head_+ch)];
-                circ_buffer_[wrap_address<WMode>(write_head_+ch)] = 0.0f;
+                out[smp * num_ch + ch] = circ_buffer_[wrap_address<WMode>(write_head_ + ch)];
+				circ_buffer_[wrap_address<WMode>(write_head_ + ch)] = 0.0f;
             });
+			
+			// Advance buffer head
 			write_head_ = wrap_address<WMode>(write_head_ + num_ch);
         }
     }
