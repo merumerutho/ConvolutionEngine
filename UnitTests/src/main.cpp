@@ -5,16 +5,16 @@
 inline std::string getTestName(const testing::TestParamInfo<TestConfig>& info) {
     std::string name;
     switch (info.param.ir_type) {
-        case ConvolutionEngine::IRType::DENSE: name += "Dense"; break;
-        case ConvolutionEngine::IRType::SPARSE: name += "Sparse"; break;
-        case ConvolutionEngine::IRType::VELVET: name += "Velvet"; break;
+        case IRType::DENSE: name += "Dense"; break;
+        case IRType::SPARSE: name += "Sparse"; break;
+        case IRType::VELVET: name += "Velvet"; break;
     }
     name += "_";
     switch (info.param.channel_layout) {
-        case ConvolutionEngine::ChannelLayout::MONO: name += "Mono"; break;
-        case ConvolutionEngine::ChannelLayout::STEREO: name += "Stereo"; break;
-        case ConvolutionEngine::ChannelLayout::QUAD: name += "Quad"; break;
-        case ConvolutionEngine::ChannelLayout::MULTICHANNEL: name += "Multi"; break;
+        case DenseConvolutionEngine::ChannelLayout::MONO: name += "Mono"; break;
+        case DenseConvolutionEngine::ChannelLayout::STEREO: name += "Stereo"; break;
+        case DenseConvolutionEngine::ChannelLayout::QUAD: name += "Quad"; break;
+        case DenseConvolutionEngine::ChannelLayout::MULTICHANNEL: name += "Multi"; break;
     }
     name += "_N" + std::to_string(info.param.num_channels);
     name += "_Buf" + std::to_string(info.param.buffer_size);
@@ -25,25 +25,25 @@ inline std::string getTestName(const testing::TestParamInfo<TestConfig>& info) {
 // Define a set of configurations to test against
 const std::vector<TestConfig> test_configs = {
     // DENSE
-    {ConvolutionEngine::IRType::DENSE, ConvolutionEngine::ChannelLayout::MONO, 1, 1024, 64, ConvolutionEngine::WrappingMode::POWER_OF_TWO},
-    {ConvolutionEngine::IRType::DENSE, ConvolutionEngine::ChannelLayout::STEREO, 2, 2048, 128, ConvolutionEngine::WrappingMode::POWER_OF_TWO},
-    {ConvolutionEngine::IRType::DENSE, ConvolutionEngine::ChannelLayout::MULTICHANNEL, 5, 4096, 256, ConvolutionEngine::WrappingMode::POWER_OF_TWO},
-    {ConvolutionEngine::IRType::DENSE, ConvolutionEngine::ChannelLayout::QUAD, 4, 2047, 64, ConvolutionEngine::WrappingMode::ARBITRARY}, 
-    {ConvolutionEngine::IRType::DENSE, ConvolutionEngine::ChannelLayout::MONO, 1, 511, 16, ConvolutionEngine::WrappingMode::ARBITRARY}, 
+    {IRType::DENSE, DenseConvolutionEngine::ChannelLayout::MONO, 1, 1024, 64, DenseConvolutionEngine::WrappingMode::POWER_OF_TWO},
+    {IRType::DENSE, DenseConvolutionEngine::ChannelLayout::STEREO, 2, 2048, 128, DenseConvolutionEngine::WrappingMode::POWER_OF_TWO},
+    {IRType::DENSE, DenseConvolutionEngine::ChannelLayout::MULTICHANNEL, 5, 4096, 256, DenseConvolutionEngine::WrappingMode::POWER_OF_TWO},
+    {IRType::DENSE, DenseConvolutionEngine::ChannelLayout::QUAD, 4, 2047, 64, DenseConvolutionEngine::WrappingMode::ARBITRARY}, 
+    {IRType::DENSE, DenseConvolutionEngine::ChannelLayout::MONO, 1, 511, 16, DenseConvolutionEngine::WrappingMode::ARBITRARY}, 
 
     // SPARSE
-    {ConvolutionEngine::IRType::SPARSE, ConvolutionEngine::ChannelLayout::MONO, 1, 1024, 64, ConvolutionEngine::WrappingMode::POWER_OF_TWO},
-    {ConvolutionEngine::IRType::SPARSE, ConvolutionEngine::ChannelLayout::STEREO, 2, 2048, 128, ConvolutionEngine::WrappingMode::POWER_OF_TWO},
-    {ConvolutionEngine::IRType::SPARSE, ConvolutionEngine::ChannelLayout::MULTICHANNEL, 6, 4096, 256, ConvolutionEngine::WrappingMode::POWER_OF_TWO},
-    {ConvolutionEngine::IRType::SPARSE, ConvolutionEngine::ChannelLayout::QUAD, 4, 2047, 128, ConvolutionEngine::WrappingMode::ARBITRARY},  
-    {ConvolutionEngine::IRType::SPARSE, ConvolutionEngine::ChannelLayout::STEREO, 2, 2047, 64, ConvolutionEngine::WrappingMode::ARBITRARY},  
+    {IRType::SPARSE, SparseConvolutionEngine::ChannelLayout::MONO, 1, 1024, 64, SparseConvolutionEngine::WrappingMode::POWER_OF_TWO},
+    {IRType::SPARSE, SparseConvolutionEngine::ChannelLayout::STEREO, 2, 2048, 128, SparseConvolutionEngine::WrappingMode::POWER_OF_TWO},
+    {IRType::SPARSE, SparseConvolutionEngine::ChannelLayout::MULTICHANNEL, 6, 4096, 256, SparseConvolutionEngine::WrappingMode::POWER_OF_TWO},
+    {IRType::SPARSE, SparseConvolutionEngine::ChannelLayout::QUAD, 4, 2047, 128, SparseConvolutionEngine::WrappingMode::ARBITRARY},  
+    {IRType::SPARSE, SparseConvolutionEngine::ChannelLayout::STEREO, 2, 2047, 64, SparseConvolutionEngine::WrappingMode::ARBITRARY},  
 
     // VELVET
-    {ConvolutionEngine::IRType::VELVET, ConvolutionEngine::ChannelLayout::MONO, 1, 1024, 64, ConvolutionEngine::WrappingMode::POWER_OF_TWO},
-    {ConvolutionEngine::IRType::VELVET, ConvolutionEngine::ChannelLayout::STEREO, 2, 2048, 128, ConvolutionEngine::WrappingMode::POWER_OF_TWO},
-    {ConvolutionEngine::IRType::VELVET, ConvolutionEngine::ChannelLayout::MULTICHANNEL, 3, 4096, 256, ConvolutionEngine::WrappingMode::POWER_OF_TWO},
-    {ConvolutionEngine::IRType::VELVET, ConvolutionEngine::ChannelLayout::QUAD, 4, 2047, 4, ConvolutionEngine::WrappingMode::ARBITRARY}, 
-    {ConvolutionEngine::IRType::VELVET, ConvolutionEngine::ChannelLayout::MULTICHANNEL, 7, 4095, 32, ConvolutionEngine::WrappingMode::ARBITRARY}, 
+    {IRType::VELVET, VelvetConvolutionEngine::ChannelLayout::MONO, 1, 1024, 64, VelvetConvolutionEngine::WrappingMode::POWER_OF_TWO},
+    {IRType::VELVET, VelvetConvolutionEngine::ChannelLayout::STEREO, 2, 2048, 128, VelvetConvolutionEngine::WrappingMode::POWER_OF_TWO},
+    {IRType::VELVET, VelvetConvolutionEngine::ChannelLayout::MULTICHANNEL, 3, 4096, 256, VelvetConvolutionEngine::WrappingMode::POWER_OF_TWO},
+    {IRType::VELVET, VelvetConvolutionEngine::ChannelLayout::QUAD, 4, 2047, 4, VelvetConvolutionEngine::WrappingMode::ARBITRARY}, 
+    {IRType::VELVET, VelvetConvolutionEngine::ChannelLayout::MULTICHANNEL, 7, 4095, 32, VelvetConvolutionEngine::WrappingMode::ARBITRARY}, 
 };
 
 // Define the test configurations

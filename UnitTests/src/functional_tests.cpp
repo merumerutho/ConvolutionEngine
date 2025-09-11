@@ -4,7 +4,7 @@
 TEST_P(ConvolutionEngineTest, ImpulseResponse) {
     // 1. Initialize based on IR type
     switch (config.ir_type) {
-        case ConvolutionEngine::IRType::DENSE: {
+        case IRType::DENSE: {
             dense_taps_data = {0.5f, 0.4f, 0.3f, 0.2f, 0.1f};
             DenseIRHandle handle;
             handle.taps = dense_taps_data.data();
@@ -12,7 +12,7 @@ TEST_P(ConvolutionEngineTest, ImpulseResponse) {
             InitializeEngine(handle);
             break;
         }
-        case ConvolutionEngine::IRType::SPARSE: {
+        case IRType::SPARSE: {
             sparse_positions_data = {10, 20, 30};
             sparse_values_data = {0.8f, 0.7f, 0.6f};
             SparseIRHandle handle;
@@ -22,7 +22,7 @@ TEST_P(ConvolutionEngineTest, ImpulseResponse) {
             InitializeEngine(handle);
             break;
         }
-        case ConvolutionEngine::IRType::VELVET: {
+        case IRType::VELVET: {
             velvet_pos_taps_data = {5, 15};
             velvet_neg_taps_data = {25};
             VelvetIRHandle handle;
@@ -46,7 +46,7 @@ TEST_P(ConvolutionEngineTest, ImpulseResponse) {
     size_t total_samples_to_process = config.buffer_size;
     while (total_samples_to_process > 0) {
         size_t current_block_size = std::min((size_t)config.block_size, total_samples_to_process);
-        engine->Process(input_buffer.data(), output_buffer.data(), current_block_size);
+        engine_wrapper->Process(input_buffer.data(), output_buffer.data(), current_block_size);
         full_response.insert(full_response.end(), output_buffer.begin(), output_buffer.begin() + (current_block_size * config.num_channels));
         // After the first block, the input should be silence
         std::fill(input_buffer.begin(), input_buffer.end(), 0.0f);
@@ -59,7 +59,7 @@ TEST_P(ConvolutionEngineTest, ImpulseResponse) {
         size_t expected_amplitude = ch;
 
         switch (config.ir_type) {
-            case ConvolutionEngine::IRType::DENSE: {
+            case IRType::DENSE: {
                 for (size_t i = 0; i < dense_taps_data.size(); i++) 
                 {
                     float expected_sample = expected_amplitude * dense_taps_data[i];
@@ -67,7 +67,7 @@ TEST_P(ConvolutionEngineTest, ImpulseResponse) {
                 }
                 break;
             }
-            case ConvolutionEngine::IRType::SPARSE: {
+            case IRType::SPARSE: {
                 for (size_t i = 0; i < sparse_positions_data.size(); i++) 
                 {
                     float expected_sample = expected_amplitude*sparse_values_data[i];
@@ -75,7 +75,7 @@ TEST_P(ConvolutionEngineTest, ImpulseResponse) {
                 }
                 break;
             }
-            case ConvolutionEngine::IRType::VELVET: {
+            case IRType::VELVET: {
                 for (auto& pos : velvet_pos_taps_data) 
                 {
                     float expected_sample = expected_amplitude*1.0f;
@@ -94,15 +94,40 @@ TEST_P(ConvolutionEngineTest, ImpulseResponse) {
 
 // Test ID: FUNC-03 - Response to Silence
 TEST_P(ConvolutionEngineTest, SilenceResponse) {
-    // Initialize with any valid handle
-    DenseIRHandle handle;
-    dense_taps_data = {1.0f};
-    handle.taps = dense_taps_data.data();
-    handle.num_taps = dense_taps_data.size();
-    InitializeEngine(handle);
+    // Initialize based on IR type
+    switch (config.ir_type) {
+        case IRType::DENSE: {
+            DenseIRHandle handle;
+            dense_taps_data = {1.0f};
+            handle.taps = dense_taps_data.data();
+            handle.num_taps = dense_taps_data.size();
+            InitializeEngine(handle);
+            break;
+        }
+        case IRType::SPARSE: {
+            SparseIRHandle handle;
+            sparse_positions_data = {0};
+            sparse_values_data = {1.0f};
+            handle.positions = sparse_positions_data.data();
+            handle.values = sparse_values_data.data();
+            handle.num_taps = sparse_positions_data.size();
+            InitializeEngine(handle);
+            break;
+        }
+        case IRType::VELVET: {
+            VelvetIRHandle handle;
+            velvet_pos_taps_data = {0};
+            handle.pos_taps = velvet_pos_taps_data.data();
+            handle.num_pos_taps = velvet_pos_taps_data.size();
+            handle.neg_taps = nullptr;
+            handle.num_neg_taps = 0;
+            InitializeEngine(handle);
+            break;
+        }
+    }
 
     std::fill(input_buffer.begin(), input_buffer.end(), 0.0f);
-    engine->Process(input_buffer.data(), output_buffer.data(), config.block_size);
+    engine_wrapper->Process(input_buffer.data(), output_buffer.data(), config.block_size);
 
     for(const auto& sample : output_buffer) {
         ASSERT_EQ(sample, 0.0f);

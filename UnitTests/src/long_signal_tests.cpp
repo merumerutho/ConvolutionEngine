@@ -2,6 +2,11 @@
 #include "generated_test_data.hpp"
 
 TEST_P(ConvolutionEngineTest, DenseIR) {
+    // Only test dense-specific functionality when using Dense engine
+    if (config.ir_type != IRType::DENSE) {
+        return; // Silently return for non-Dense configurations
+    }
+    
     DenseIRHandle handle;
     handle.taps = dense_ir;
     handle.num_taps = dense_ir_size;
@@ -21,7 +26,7 @@ TEST_P(ConvolutionEngineTest, DenseIR) {
         }
 		
 		// Process
-        engine->Process(input_buffer.data(), output_buffer.data(), config.block_size);
+        engine_wrapper->Process(input_buffer.data(), output_buffer.data(), config.block_size);
 		ASSERT_EQ(get_write_head(), ((i+1)*config.block_size*config.num_channels) % config.buffer_size);
 		
 		// Evaluate output
@@ -37,6 +42,11 @@ TEST_P(ConvolutionEngineTest, DenseIR) {
 }
 
 TEST_P(ConvolutionEngineTest, SparseIR) {
+    // Only test sparse-specific functionality when using Sparse engine
+    if (config.ir_type != IRType::SPARSE) {
+        return; // Silently return for non-Sparse configurations
+    }
+    
     SparseIRHandle handle;
     handle.positions = sparse_ir_positions;
     handle.values = sparse_ir_values;
@@ -63,7 +73,7 @@ TEST_P(ConvolutionEngineTest, SparseIR) {
         }
 		
         input_idx += current_block_size;
-        engine->Process(input_buffer.data(), output_buffer.data(), current_block_size);
+        engine_wrapper->Process(input_buffer.data(), output_buffer.data(), current_block_size);
 		
 		for (size_t ch = 0; ch < config.num_channels; ch++)
 		{
@@ -77,6 +87,11 @@ TEST_P(ConvolutionEngineTest, SparseIR) {
 }
 
 TEST_P(ConvolutionEngineTest, VelvetIR) {
+    // Only test velvet-specific functionality when using Velvet engine
+    if (config.ir_type != IRType::VELVET) {
+        return; // Silently return for non-Velvet configurations
+    }
+    
     VelvetIRHandle handle;
     handle.pos_taps = velvet_ir_pos_positions;
     handle.num_pos_taps = velvet_ir_pos_positions_size;
@@ -104,7 +119,7 @@ TEST_P(ConvolutionEngineTest, VelvetIR) {
             }
         }
         input_idx += current_block_size;
-        engine->Process(input_buffer.data(), output_buffer.data(), current_block_size);
+        engine_wrapper->Process(input_buffer.data(), output_buffer.data(), current_block_size);
 		
 		for (size_t ch = 0; ch < config.num_channels; ch++)
 		{

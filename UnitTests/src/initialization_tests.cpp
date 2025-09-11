@@ -9,14 +9,14 @@ TEST_P(ConvolutionEngineTest, DefaultState) {
 // Test ID: INIT-02 - Post-Init State and Dispatch
 TEST_P(ConvolutionEngineTest, PostInitState) {
     switch (config.ir_type) {
-        case ConvolutionEngine::IRType::DENSE: {
+        case IRType::DENSE: {
             DenseIRHandle handle;
             handle.num_taps = 0;
             handle.taps = nullptr;
             InitializeEngine(handle);
             break;
         }
-        case ConvolutionEngine::IRType::SPARSE: {
+        case IRType::SPARSE: {
             SparseIRHandle handle;
             handle.num_taps = 0;
             handle.positions = nullptr;
@@ -24,7 +24,7 @@ TEST_P(ConvolutionEngineTest, PostInitState) {
             InitializeEngine(handle);
             break;
         }
-        case ConvolutionEngine::IRType::VELVET: {
+        case IRType::VELVET: {
             VelvetIRHandle handle;
             handle.num_pos_taps = 0;
             handle.pos_taps = nullptr;
