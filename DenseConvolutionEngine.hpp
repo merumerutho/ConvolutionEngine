@@ -23,10 +23,12 @@ public:
 
     using ProcessFunctionPtr = void (DenseConvolutionEngine::*)(const float*, float*, size_t);
 
-    DenseConvolutionEngine() : active_process_function_(nullptr) {}
+    DenseConvolutionEngine() : active_process_function_(nullptr), is_morphing_(false), 
+                               morph_cycles_remaining_(0), morph_delta_(nullptr) {}
     ~DenseConvolutionEngine() {}
 
-    void Init(const DenseIRHandle& handle, float* circ_buffer, size_t buffer_size, size_t num_channels)
+    void Init(const DenseIRHandle& handle, float* circ_buffer, size_t buffer_size, size_t num_channels,
+              float* current_taps_buffer = nullptr, float* morph_delta_buffer = nullptr)
     {
         circ_buffer_  = circ_buffer;
         buffer_size_  = buffer_size;
@@ -46,6 +48,16 @@ public:
         dense_taps_ 				= handle.taps;
         num_dense_taps_ 			= handle.num_taps;
         assert(dense_taps_          || (num_dense_taps_ == 0));         // != NULL
+
+        // Initialize morphing buffers if provided
+        current_taps_ = current_taps_buffer;
+        morph_delta_ = morph_delta_buffer;
+        
+        if (current_taps_ && num_dense_taps_ > 0)
+        {
+            // Copy initial IR values to current_taps_ buffer
+            std::copy(dense_taps_, dense_taps_ + num_dense_taps_, current_taps_);
+        }
 
         // Dispatch to the correct template specialization based on runtime channel count
         // and WrappingMode
@@ -70,6 +82,53 @@ public:
     void Process(const float* in, float* out, size_t size)
     {
         (this->*active_process_function_)(in, out, size);
+    }
+
+    void MorphIRDense(const DenseIRHandle& target_handle, int morph_cycles)
+    {
+        assert(morph_cycles > 0);
+        assert(target_handle.taps);
+        assert(target_handle.num_taps == num_dense_taps_);
+        assert(current_taps_);
+        assert(morph_delta_);
+
+        target_taps_ = target_handle.taps;
+        morph_cycles_remaining_ = morph_cycles;
+        
+        // Calculate deltas for each tap (from current state to target)
+        for (size_t i = 0; i < num_dense_taps_; i++)
+        {
+            morph_delta_[i] = (target_taps_[i] - current_taps_[i]) / static_cast<float>(morph_cycles);
+        }
+        
+        // Switch to using current_taps_ for processing
+        dense_taps_ = current_taps_;
+        is_morphing_ = true;
+    }
+
+    void MorphIRDense_Update()
+    {
+        if (!is_morphing_ || morph_cycles_remaining_ <= 0)
+            return;
+
+        // Apply one step of linear interpolation
+        for (size_t i = 0; i < num_dense_taps_; i++)
+        {
+            current_taps_[i] += morph_delta_[i];
+        }
+
+        morph_cycles_remaining_--;
+        
+        if (morph_cycles_remaining_ == 0)
+        {
+            // Morphing complete - snap to target values and update main pointer
+            for (size_t i = 0; i < num_dense_taps_; i++)
+            {
+                current_taps_[i] = target_taps_[i];
+            }
+            dense_taps_ = current_taps_;
+            is_morphing_ = false;
+        }
     }
 
 protected:
@@ -133,6 +192,13 @@ protected:
 	// Used for DENSE kernel
     const float * dense_taps_;
     size_t        num_dense_taps_;
+
+    // Morphing state
+    bool is_morphing_;
+    int morph_cycles_remaining_;
+    const float* target_taps_;
+    float* current_taps_;
+    float* morph_delta_;
 };
 
 #endif // DENSE_CONVOLUTION_ENGINE_H
